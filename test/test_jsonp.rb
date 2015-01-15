@@ -12,9 +12,10 @@ class TestJsonP < Minitest::Test
 
   # When callback is provided and response content-type is JSON
   def test_happy_path
-    env = {}
-    expected_body = 'parseUser({"user": "alice"});'
+    env = Rack::MockRequest.env_for('/users/123', params: {'callback' => 'parseUser'})
     _, _, body = @subject.call(env)
+
+    expected_body = 'parseUser({"user": "alice"});'
     assert_equal body, expected_body
   end
 

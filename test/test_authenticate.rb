@@ -1,19 +1,22 @@
 require_relative 'test_helper'
 require_relative '../lib/authenticate'
 
-# Need some sort of User repository to authenticate against.
+# TODO: Need some sort of User repository to authenticate against.
 
 class TestAuthenticate < Minitest::Test
-  TEST_APP = Proc.new do |env|
-    [200, {}, ['Hello world!']]
-  end
-
   def setup
-    @subject = Authenticate.new(TEST_APP)
+    test_app = Proc.new do |env|
+      assert_equal env['rack.current_user'], '123', 'expected current_user id to be assigned'
+    end
+
+    user_repo = Object.new
+    @subject = Authenticate.new(test_app, user_repo)
   end
 
   # When a valid token is provided, it assigns current_user
-  def test_happy_path
+  def test_assigns_current_user
+    env = Rack::MockRequest.env_for('/', 'HTTP_AUTHORIZATION' => 'token abc123')
+    @subject.call(env)
   end
 
   # When a valid token is provided, it calls the downstream app

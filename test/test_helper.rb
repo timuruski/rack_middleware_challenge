@@ -1,6 +1,6 @@
 require 'bundler/setup'
 
-require 'rack/test'
+require 'rack/mock'
 
 require 'minitest'
 require 'minitest/autorun'

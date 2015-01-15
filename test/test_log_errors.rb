@@ -8,12 +8,21 @@ class TestLogErrors < Minitest::Test
   end
 
   def setup
-    @subject = RescueErrors.new(TEST_APP)
+    @subject = LogErrors.new(TEST_APP)
   end
 
   # When an exception is raised, it rescues it and responds with 500.
   def test_happy_path
-    status, headers, body = @setup.call(env)
+    env = Rack::MockRequest.env_for
+    begin
+      status, headers, body = @subject.call(env)
+    rescue RuntimeError => error
+      # Minitest has no refute_raises, because reasons!
+      # So we capture any raised exception and then assert it should not have
+      # been raised.
+    end
+
+    assert_nil error
   end
 
   # When an exception is raised, it outputs an appropriate log message.
