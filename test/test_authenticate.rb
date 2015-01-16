@@ -6,7 +6,7 @@ require_relative '../lib/authenticate'
 class TestAuthenticate < Minitest::Test
   class User; end
   class UserRepo
-    def initialize(users)
+    def initialize(users = {})
       @users = users
     end
 
@@ -16,7 +16,8 @@ class TestAuthenticate < Minitest::Test
   end
 
   # When a valid token is provided, it assigns current_user
-  def test_assigns_current_user
+  # When a valid token is provided, it calls the downstream app
+  def test_valid_token
     test_user = User.new
     user_repo = UserRepo.new('abc123' => test_user)
 
@@ -30,6 +31,22 @@ class TestAuthenticate < Minitest::Test
     subject.call(env)
   end
 
-  # When a valid token is provided, it calls the downstream app
   # When an invalid token is provided, it responds with 401 Unauthorized
+  # When an invalid token is provided, it does not call the downstream app
+  def test_invalid_token
+    user_repo = UserRepo.new
+    downstream_called = false
+
+    test_app = Proc.new do |env|
+      downstream_called = true
+      [200, {}, ['Downstream called']]
+    end
+
+    subject = Authenticate.new(test_app, user_repo)
+    env = Rack::MockRequest.env_for('/', 'HTTP_AUTHORIZATION' => 'token abc123')
+    status, _, body = subject.call(env)
+
+    assert_equal status, 401
+    refute downstream_called
+  end
 end
