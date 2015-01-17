@@ -1,9 +1,7 @@
 require_relative 'test_helper'
-require_relative '../lib/authenticate'
+require_relative '../lib/authorize'
 
-# TODO: Need some sort of User repository to authenticate against.
-
-class TestAuthenticate < Minitest::Test
+class TestAuthorize < Minitest::Test
   class User; end
   class UserRepo
     def initialize(users = {})
@@ -21,7 +19,7 @@ class TestAuthenticate < Minitest::Test
     test_user = User.new
     user_repo = UserRepo.new('abc123' => test_user)
 
-    app = AppHarness.new(Authenticate, user_repo) do |env|
+    app = AppHarness.new(Authorize, user_repo) do |env|
       assert_equal test_user, env['rack.current_user'], 'current_user not assigned'
     end
 
@@ -33,7 +31,7 @@ class TestAuthenticate < Minitest::Test
   def test_invalid_token
     downstream_called = false
     user_repo = UserRepo.new
-    app = AppHarness.new(Authenticate, user_repo) do |env|
+    app = AppHarness.new(Authorize, user_repo) do |env|
       downstream_called = true
       [200, {}, ['Downstream called']]
     end
@@ -52,7 +50,7 @@ class TestAuthenticate < Minitest::Test
     user_repo = UserRepo.new('abc123' => test_user)
     downstream_called = false
 
-    app = AppHarness.new(Authenticate, user_repo) do |env|
+    app = AppHarness.new(Authorize, user_repo) do |env|
       downstream_called = true
       [200, {}, ['Downstream called']]
     end

@@ -1,4 +1,4 @@
-class Authenticate
+class Authorize
   def initialize(app, user_repo)
     @app = app
     @user_repo = user_repo
