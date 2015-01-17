@@ -11,7 +11,7 @@ class TestJsonP < Minitest::Test
     _, _, body = app.call('/users/123', params: {'callback' => 'parseUser'})
 
     expected_body = ['parseUser({"user": "alice"});']
-    assert_equal body, expected_body
+    assert_equal expected_body, body
   end
 
   # When callback is not provided, it does nothing
@@ -23,7 +23,7 @@ class TestJsonP < Minitest::Test
     _, _, body = app.call('/users/123')
 
     expected_body = ['{"user": "alice"}']
-    assert_equal body, expected_body
+    assert_equal expected_body, body
   end
 
   # When response content-type is not JSON, it does nothing
@@ -35,6 +35,6 @@ class TestJsonP < Minitest::Test
     _, _, body = app.call('/users/123')
 
     expected_body = ['<p>User: alice</p>']
-    assert_equal body, expected_body
+    assert_equal expected_body, body
   end
 end

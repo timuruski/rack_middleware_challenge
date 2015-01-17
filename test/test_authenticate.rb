@@ -22,7 +22,7 @@ class TestAuthenticate < Minitest::Test
     user_repo = UserRepo.new('abc123' => test_user)
 
     app = AppHarness.new(Authenticate, user_repo) do |env|
-      assert_equal env['rack.current_user'], test_user, 'current_user not assigned'
+      assert_equal test_user, env['rack.current_user'], 'current_user not assigned'
     end
 
     app.call('/', 'HTTP_AUTHORIZATION' => 'token abc123')
@@ -31,9 +31,8 @@ class TestAuthenticate < Minitest::Test
   # When an invalid token is provided, it responds with 401 Unauthorized
   # When an invalid token is provided, it does not call the downstream app
   def test_invalid_token
-    user_repo = UserRepo.new
     downstream_called = false
-
+    user_repo = UserRepo.new
     app = AppHarness.new(Authenticate, user_repo) do |env|
       downstream_called = true
       [200, {}, ['Downstream called']]
@@ -41,7 +40,27 @@ class TestAuthenticate < Minitest::Test
 
     status, _, body = app.call('/', 'HTTP_AUTHORIZATION' => 'token abc123')
 
-    assert_equal status, 401
+    assert_equal 401, status
+    assert_equal ['Unauthorized'], body
+    refute downstream_called
+  end
+
+  # When authorization is not a token, it responds with 401 Unauthorized
+  # When an invalid token is provided, it does not call the downstream app
+  def test_invalid_authorization
+    test_user = User.new
+    user_repo = UserRepo.new('abc123' => test_user)
+    downstream_called = false
+
+    app = AppHarness.new(Authenticate, user_repo) do |env|
+      downstream_called = true
+      [200, {}, ['Downstream called']]
+    end
+
+    status, _, body = app.call('/', 'HTTP_AUTHORIZATION' => 'Basic abc123')
+
+    assert_equal 401, status
+    assert_equal ['Unauthorized'], body
     refute downstream_called
   end
 end
