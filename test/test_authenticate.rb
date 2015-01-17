@@ -21,14 +21,11 @@ class TestAuthenticate < Minitest::Test
     test_user = User.new
     user_repo = UserRepo.new('abc123' => test_user)
 
-    test_app = Proc.new do |env|
+    app = AppHarness.new(Authenticate, user_repo) do |env|
       assert_equal env['rack.current_user'], test_user, 'current_user not assigned'
     end
 
-    subject = Authenticate.new(test_app, user_repo)
-    env = Rack::MockRequest.env_for('/', 'HTTP_AUTHORIZATION' => 'token abc123')
-
-    subject.call(env)
+    app.call('/', 'HTTP_AUTHORIZATION' => 'token abc123')
   end
 
   # When an invalid token is provided, it responds with 401 Unauthorized
@@ -37,14 +34,12 @@ class TestAuthenticate < Minitest::Test
     user_repo = UserRepo.new
     downstream_called = false
 
-    test_app = Proc.new do |env|
+    app = AppHarness.new(Authenticate, user_repo) do |env|
       downstream_called = true
       [200, {}, ['Downstream called']]
     end
 
-    subject = Authenticate.new(test_app, user_repo)
-    env = Rack::MockRequest.env_for('/', 'HTTP_AUTHORIZATION' => 'token abc123')
-    status, _, body = subject.call(env)
+    status, _, body = app.call('/', 'HTTP_AUTHORIZATION' => 'token abc123')
 
     assert_equal status, 401
     refute downstream_called
