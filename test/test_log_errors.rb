@@ -29,8 +29,20 @@ class TestLogErrors < Minitest::Test
     output = StringIO.new('')
     status, _, _ = app.call('/', 'rack.logger' => Logger.new(output))
 
-    assert_equal status, 500
-    assert_match /ERROR -- : boom/, output.string
+    assert_match /ERROR -- : Kaboom/, output.string
+  end
+
+  # When an exception is raised, it returns an appropriate response.
+  def test_handles_error
+    app = AppHarness.new(LogErrors) do
+      raise 'Kaboom'
+    end
+
+    output = StringIO.new('')
+    status, _, body = app.call
+
+    assert_equal 500, status
+    assert_equal ['Internal Server Error'], body
   end
 
   # When no exception is raised, it does nothing.
@@ -39,9 +51,9 @@ class TestLogErrors < Minitest::Test
       [200, {}, ['Hello, world']]
     end
 
-    status, headers, body = app.call
+    status, _, body = app.call
 
-    assert_equal status, 200
-    assert_equal body, ['Hello, world']
+    assert_equal 200, status
+    assert_equal ['Hello, world'], body
   end
 end
