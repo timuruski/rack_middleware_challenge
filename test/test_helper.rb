@@ -9,14 +9,23 @@ require 'minitest/autorun'
 # The harness also provides a call method, which generates an env
 # for the request. Usage example:
 #
-#   subject = AppHarness.new(MyMiddleware, 'foo') do |env|
+#   subject = TestApp.new(MyMiddleware, 'foo') do |env|
 #     [200, {}, ['Hello world']]
 #   end
 #
-#   status, header, body, subject.call('/foo/bar')
-class AppHarness
+#   response = subject.get('/foo/bar')
+class TestApp
   def initialize(middleware, *args, &app)
     @app = middleware.new(app, *args)
+    @app = Rack::Builder.new do
+      use Rack::Lint
+      use middleware, *args
+      run app
+    end
+  end
+
+  def get(*args)
+    Rack::MockRequest.new(@app).get(*args)
   end
 
   def call(*args)

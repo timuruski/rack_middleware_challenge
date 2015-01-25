@@ -14,33 +14,33 @@ class TestLogErrors < Minitest::Test
     $stderr = captured_err
 
     yield
-  rescue
-    flunk 'Exception not rescued'
+  rescue => error
+    flunk %Q(Not rescued: #{error.class} - #{error.message})
   ensure
     $stderr = original_err
   end
 
   # When an exception is raised, it rescues it and responds with 500.
   def test_rescues_errors
-    app = AppHarness.new(LogErrors) do
+    app = TestApp.new(LogErrors) do |env|
       raise 'Kaboom'
     end
 
     without_error do
-      app.call
+      app.get('/')
     end
   end
 
   # When an exception is raised, it outputs an appropriate log message to
   # rack.logger
   def test_logs_errors_to_rack_logger
-    app = AppHarness.new(LogErrors) do
+    app = TestApp.new(LogErrors) do |env|
       raise 'Kaboom'
     end
 
     logger_output = StringIO.new
     without_error do
-      app.call('/', 'rack.logger' => Logger.new(logger_output))
+      app.get('/', 'rack.logger' => Logger.new(logger_output))
     end
 
     assert_match /ERROR -- : Kaboom/, logger_output.string
@@ -49,13 +49,13 @@ class TestLogErrors < Minitest::Test
   # When an exception is raised, and rack.logger is missing, it outputs to
   # STDERR.
   def test_logs_errors_to_stderr
-    app = AppHarness.new(LogErrors) do
+    app = TestApp.new(LogErrors) do |env|
       raise 'Kaboom'
     end
 
     captured_errs = StringIO.new
     without_error(captured_errs) do
-      app.call
+      app.get('/')
     end
 
     assert_match /ERROR -- : Kaboom/, captured_errs.string
@@ -63,29 +63,29 @@ class TestLogErrors < Minitest::Test
 
   # When an exception is raised, it returns an appropriate response.
   def test_handles_error
-    app = AppHarness.new(LogErrors) do
+    app = TestApp.new(LogErrors) do |env|
       raise 'Kaboom'
     end
 
-    status, _, body = without_error do
-      app.call
+    response = without_error do
+      app.get('/')
     end
 
-    assert_equal 500, status
-    assert_equal ['Internal Server Error'], body
+    assert_equal 500, response.status
+    assert_equal 'Internal Server Error', response.body
   end
 
   # When no exception is raised, it does nothing.
   def test_no_errors
-    app = AppHarness.new(LogErrors) do
+    app = TestApp.new(LogErrors) do |env|
       [200, {}, ['Hello, world']]
     end
 
-    status, _, body = without_error do
-      app.call
+    response = without_error do
+      app.get('/')
     end
 
-    assert_equal 200, status
-    assert_equal ['Hello, world'], body
+    assert_equal 200, response.status
+    assert_equal 'Hello, world', response.body
   end
 end
