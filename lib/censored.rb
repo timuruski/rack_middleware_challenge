@@ -10,6 +10,14 @@ class Censored
   end
 
   def call(env)
-    @app.call(env)
+    status, headers, body = @app.call(env)
+    body = body.map { |part|
+      @blacklist.reduce(part) { |part, word|
+        replacement = '#' * word.length
+        part.gsub(word, replacement)
+      }
+    }
+
+    [status, headers, body]
   end
 end
