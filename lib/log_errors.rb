@@ -8,6 +8,6 @@ class LogErrors
   end
 
   def call(env)
-    @app.call
+    @app.call(env)
   end
 end
