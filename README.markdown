@@ -14,6 +14,10 @@ The exercise will provide you with an existing environment, so you only need to
 worry about implementing the middleware. This repo includes tests to guide your
 development.
 
+This is part of the [YYC Ruby](http://yycruby.org) February 2015 meetup
+about Rack and Middleware. Slides from the talk are [available on
+SpeakerDeck](https://speakerdeck.com/timuruski/rack-and-middleware).
+
 
 ## Getting Started
 
@@ -92,3 +96,12 @@ callback and updates the response `Content-Length`.
 use JsonP
 run MyApp.new
 ```
+
+
+## Solutions
+
+If are interested in seeing implementations for these tests, you can
+check out the `solution` branch. All of the tests were implemented
+against these, so the tests are real.
+
+`git checkout solution`
