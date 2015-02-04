@@ -1,27 +1,25 @@
 # Rack Middleware Exercise
 
-This is a simple exercise to learn about writing Rack Middleware. The goal is
-write three pieces of middleware to do three separate tasks:
+This is a simple exercise to learn about writing Rack apps and middleware. The
+goal is write four pieces of middleware that pass the test suite provided.
+
+The middleware in brief:
 
   - Rescue and handle exceptions
-  - Authorize requests with HTTP header
+  - Authorize requests via API token
+  - Censor sensitive information
   - Handle JSONP formatted requests
 
 The exercise will provide you with an existing environment, so you only need to
-worry about the work that the middleware does. This repo includes some light
-tests to guide your development.
-
-To get started, fork this repo and open a pull request. When you think you have
-a solution to one of the required middlewares, you can push up a commit. The
-automated test runner will (hopefully) be notified and run the tests against
-your repo.
+worry about implementing the middleware. This repo includes tests to guide your
+development.
 
 
 ## Getting Started
 
 Clone the repo:
 
-    git clone git@github.com:timuruski/rack_middleware_exercise.git
+    git clone git@github.com:yycruby/middleware_exercise.git
 
 Install necessary gems:
 
@@ -30,6 +28,9 @@ Install necessary gems:
 Run the tests:
 
     rake test
+
+If you want to share your solutions, you can fork the repo and open a pull
+request!
 
 
 ## Middleware Exercises
