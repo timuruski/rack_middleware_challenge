@@ -10,15 +10,24 @@ class Authorize
   end
 
   def call(env)
-    user = find_user(env['HTTP_AUTHORIZATION'])
+    token = find_auth_token(env)
+    user = find_user(token)
+
     return [401, {}, ['Unauthorized']] if user.nil?
 
     env['rack.current_user'] = user
     @app.call(env)
   end
 
-  def find_user(auth)
-    token = parse_token_auth(auth)
+  def find_auth_token(env)
+    if token = env['HTTP_AUTHORIZATION']
+      parse_token_auth(token)
+    else
+      Rack::Request.new(env).params['authorization_token']
+    end
+  end
+
+  def find_user(token)
     return if token.nil?
 
     @user_repo.find_by_token(token)
