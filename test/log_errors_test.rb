@@ -61,6 +61,28 @@ class TestLogErrors < Minitest::Test
     assert_match /ERROR -- : Kaboom/, captured_errs.string
   end
 
+  # When an exception is raised, and show_errors is set, the error is returned
+  # as JSON.
+  def test_serializes_error
+    app = TestApp.new(LogErrors, show_errors: true) do |env|
+      raise 'Kaboom'
+    end
+
+    captured_errs = StringIO.new
+    response = without_error(captured_errs) do
+      app.get('/')
+    end
+
+    assert_match 'application/json', response.content_type
+
+    response_json = JSON.parse(response.body)
+    assert_match 'Kaboom', response_json.fetch('message')
+    assert_match 'RuntimeError', response_json.fetch('type')
+
+    backtrace = response_json.fetch('backtrace')
+    assert backtrace.grep(%r{test/log_errors_test.rb}).any?
+  end
+
   # When an exception is raised, it returns an appropriate response.
   def test_handles_error
     app = TestApp.new(LogErrors) do |env|
@@ -72,6 +94,7 @@ class TestLogErrors < Minitest::Test
     end
 
     assert_equal 500, response.status
+    assert_equal 'text/plain', response.content_type
     assert_equal 'Internal Server Error', response.body
   end
 
